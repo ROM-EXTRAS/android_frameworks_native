@@ -424,7 +424,6 @@ public:
 
     virtual void updatePointerMappingParameters(int offsetX, int offestY, float scale, int width,
             int height) {
-        AutoMutex _l(mLock);
         mPointerOffsetX = offsetX;
         mPointerOffsetY = offestY;
         mPointerScale = scale;

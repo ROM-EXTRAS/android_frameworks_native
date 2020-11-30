@@ -54,6 +54,7 @@ cc_library_shared {
     cflags: [
         // TODO(b/23084678): Move inputflinger to its own process and mark it hidden
         //-fvisibility=hidden
+	"-Wno-unused-variable",
     ],
 
     export_include_dirs: [
