@@ -410,12 +410,6 @@ InputDispatcher::InputDispatcher(const sp<InputDispatcherPolicyInterface>& polic
     mKeyRepeatState.lastKeyEntry = nullptr;
 
     policy->getDispatcherConfiguration(&mConfig);
-
-    mPointerOffsetX = 0;
-    mPointerOffsetY = 0;
-    mPointerScale = 1.0f;
-    mPointerWidth = 0;
-    mPointerHeight = 0;
 }
 
 InputDispatcher::~InputDispatcher() {
@@ -813,14 +807,6 @@ sp<InputWindowHandle> InputDispatcher::findTouchedWindowAtLocked(int32_t display
         LOG_ALWAYS_FATAL(
                 "Must provide a valid touch state if adding portal windows or outside targets");
     }
-
-#ifdef ONEHANDED_SUPPORT
-        bool outSidedScreenAndOneHandModeActivated = mPointerScale != 1
-                && (x < 0 || y < 0 || x >= mPointerWidth || y >= mPointerHeight);
-#else
-        bool outSidedScreenAndOneHandModeActivated = false;
-#endif
-
     // Traverse windows from front to back to find touched window.
     const std::vector<sp<InputWindowHandle>> windowHandles = getWindowHandlesLocked(displayId);
     for (const sp<InputWindowHandle>& windowHandle : windowHandles) {
@@ -833,8 +819,7 @@ sp<InputWindowHandle> InputDispatcher::findTouchedWindowAtLocked(int32_t display
                     bool isTouchModal = (flags &
                                          (InputWindowInfo::FLAG_NOT_FOCUSABLE |
                                           InputWindowInfo::FLAG_NOT_TOUCH_MODAL)) == 0;
-                    if ((isTouchModal && !outSidedScreenAndOneHandModeActivated) // Sorry, the outsided touch belongs to one hand, not you
-                        || windowInfo->touchableRegionContainsPoint(x, y)) {
+                    if (isTouchModal || windowInfo->touchableRegionContainsPoint(x, y)) {
                         int32_t portalToDisplayId = windowInfo->portalToDisplayId;
                         if (portalToDisplayId != ADISPLAY_ID_NONE &&
                             portalToDisplayId != displayId) {
@@ -1663,7 +1648,6 @@ int32_t InputDispatcher::findTouchedWindowTargetsLocked(nsecs_t currentTime,
             x = int32_t(entry.pointerCoords[pointerIndex].getAxisValue(AMOTION_EVENT_AXIS_X));
             y = int32_t(entry.pointerCoords[pointerIndex].getAxisValue(AMOTION_EVENT_AXIS_Y));
         }
-
         bool isDown = maskedAction == AMOTION_EVENT_ACTION_DOWN;
         sp<InputWindowHandle> newTouchedWindowHandle =
                 findTouchedWindowAtLocked(displayId, x, y, &tempTouchState,
@@ -1717,10 +1701,6 @@ int32_t InputDispatcher::findTouchedWindowTargetsLocked(nsecs_t currentTime,
             ALOGI("Dropping event because there is no touchable window or gesture monitor at "
                   "(%d, %d) in display %" PRId32 ".",
                   x, y, displayId);
-#ifdef ONEHANDED_SUPPORT
-                if (!isHoverAction)
-                    mPolicy->notifyOutSideScreenTouch(x, y);
-#endif
             injectionResult = INPUT_EVENT_INJECTION_FAILED;
             goto Failed;
         }
@@ -3223,18 +3203,6 @@ void InputDispatcher::notifyMotion(const NotifyMotionArgs* args) {
 
         if (shouldSendMotionToInputFilterLocked(args)) {
             mLock.unlock();
-
-#ifdef ONEHANDED_SUPPORT
-        // Translate only pointer motion events.
-        if (args->source & AINPUT_SOURCE_CLASS_POINTER) {
-            // We do not want to translate the injected motion event.
-            for (size_t i = 0; i < args->pointerCount; i++) {
-                // Using the helper method of PoitnerCoords is much better than calculate it our self
-                ((NotifyMotionArgs*)args)->pointerCoords[i].applyOffset(mPointerOffsetX, mPointerOffsetY);
-                ((NotifyMotionArgs*)args)->pointerCoords[i].scale(mPointerScale);
-            }
-        }
-#endif
 
             MotionEvent event;
             event.initialize(args->id, args->deviceId, args->source, args->displayId, INVALID_HMAC,

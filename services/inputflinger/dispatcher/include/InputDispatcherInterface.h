@@ -56,11 +56,6 @@ protected:
     virtual ~InputDispatcherInterface() {}
 
 public:
-    virtual void updatePointerMappingParameters(int offsetX, int offestY, float scale, int width,
-            int height) {
-        ALOGE("calling into default no op updatePointerMappingParameters");
-        // NO_OP
-    }
     /* Dumps the state of the input dispatcher.
      *
      * This method may be called on any thread (usually by the input manager). */

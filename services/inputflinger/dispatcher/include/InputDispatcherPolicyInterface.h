@@ -116,8 +116,6 @@ public:
      * The touchedToken passed as an argument is the window that received the input event.
      */
     virtual void onPointerDownOutsideFocus(const sp<IBinder>& touchedToken) = 0;
-
-    virtual void notifyOutSideScreenTouch(int x, int y) { /* No op by default */ }
 };
 
 } // namespace android

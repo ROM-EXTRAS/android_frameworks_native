@@ -20,7 +20,6 @@ cc_defaults {
         "-Wextra",
         "-Werror",
         "-Wno-unused-parameter",
-        "-DONEHANDED_SUPPORT",
         "-Wthread-safety",
     ],
 }
