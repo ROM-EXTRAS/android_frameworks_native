@@ -90,15 +90,7 @@ protected:
 
 public:
     explicit InputDispatcher(const sp<InputDispatcherPolicyInterface>& policy);
-    virtual void updatePointerMappingParameters(int offsetX, int offestY, float scale, int width,
-            int height) {
-        AutoMutex _l(mLock);
-        mPointerOffsetX = offsetX;
-        mPointerOffsetY = offestY;
-        mPointerScale = scale;
-        mPointerWidth = width;
-        mPointerHeight = height;
-    }
+
     virtual void dump(std::string& dump) override;
     virtual void monitor() override;
     virtual bool waitForIdle() override;
@@ -393,12 +385,6 @@ private:
 
     // Contains the last window which received a hover event.
     sp<InputWindowHandle> mLastHoverWindowHandle GUARDED_BY(mLock);
-
-    int32_t mPointerOffsetX;
-    int32_t mPointerOffsetY;
-    float mPointerScale;
-    int32_t mPointerWidth;
-    int32_t mPointerHeight;
 
     void cancelEventsForAnrLocked(const sp<Connection>& connection) REQUIRES(mLock);
     nsecs_t getTimeSpentWaitingForApplicationLocked(nsecs_t currentTime) REQUIRES(mLock);
